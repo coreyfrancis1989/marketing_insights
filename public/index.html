@@ -1,5 +1,5 @@
 <meta charset="utf-8">
-<title>Comfort Colors Creative Board</title>
+<title>Marketing Insights</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=Instrument+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
@@ -285,14 +285,14 @@ footer{margin-top:40px;padding-top:20px;border-top:1px solid var(--line-2);
         <span style="background:#A6552F"></span><span style="background:#C08A2D"></span>
         <span style="background:#2A2622"></span><span style="background:#EFEAE1"></span>
       </div>
-      <span class="eyebrow">Comfort Colors · Meta Ads</span>
+      <span class="eyebrow" id="eyebrowTag">Cross-Channel · Creative Performance</span>
       <a class="theme-toggle" href="/upload" style="text-decoration:none">↑ Upload data</a>
       <button class="theme-toggle" id="themeBtn">◐ Theme</button>
     </div>
     <h1>Which creatives are actually pulling their weight?</h1>
-    <p class="thesis">A creative board for the last <b id="thWindow">90 days</b> of paid social. The wholesale account spent <b id="thSpend">$29k</b> across <b id="thN">64</b> creatives — but spend and attention pull in different directions. Slice by campaign, format, objective, age, gender or platform below, and build your own metrics if the built-ins don't say what you need.</p>
+    <p class="thesis">A creative board for the last <b id="thWindow">90 days</b> of paid social. <b id="thBrandLine">This account</b> spent <b id="thSpend">$29k</b> across <b id="thN">64</b> creatives — but spend and attention pull in different directions. Slice by brand, campaign, format, objective, age, gender or platform below, and build your own metrics if the built-ins don't say what you need.</p>
     <div class="metaline">
-      <span>Source: <b>Meta Ads via Windsor.ai</b></span>
+      <span>Source: <b id="thSource">Connected accounts</b></span>
       <span>Window: <b id="mWindow">—</b></span>
       <span>Grain: <b id="mGrain">creative × day</b></span>
     </div>
@@ -317,6 +317,8 @@ footer{margin-top:40px;padding-top:20px;border-top:1px solid var(--line-2);
     <div class="ctl"><span>Segment by</span><div class="row">
       <select id="segmentSel">
         <option value="none">Creative</option>
+        <option value="brand">Brand</option>
+        <option value="channel">Channel</option>
         <option value="campaign">Campaign</option>
         <option value="format">Format</option>
         <option value="objective">Objective</option>
@@ -406,7 +408,7 @@ footer{margin-top:40px;padding-top:20px;border-top:1px solid var(--line-2);
   </section>
 
   <footer>
-    <div>Comfort Colors Creative Board · built from <b>ad_creative_performance.db</b> (Meta Ads via Windsor.ai).</div>
+    <div>Marketing Insights · a cross-channel, multi-brand creative performance board. Connected sources plus anything uploaded manually.</div>
     <div>Engagement rate = post engagements ÷ impressions. Hook rate = 3-second video plays ÷ impressions. Hold rate = ThruPlays ÷ 3-second video plays. Age/gender/platform reflect Meta's delivery breakdowns for the full window regardless of the date filter. Purchase/ROAS columns are sparse — these campaigns mostly run on awareness, engagement and traffic objectives, not conversions.</div>
   </footer>
 </div>
@@ -421,7 +423,7 @@ footer{margin-top:40px;padding-top:20px;border-top:1px solid var(--line-2);
 </button>
 <section class="chat-panel" id="chatPanel" role="dialog" aria-label="Ask the data" aria-hidden="true">
   <div class="chat-head">
-    <div><div class="t">Ask the data</div><div class="s">Comfort Colors · Meta Ads</div></div>
+    <div><div class="t">Ask the data</div><div class="s">Cross-channel · all connected brands</div></div>
     <button class="chat-close" id="chatClose" aria-label="Close chat">✕</button>
   </div>
   <div class="chat-body" id="chatBody">
@@ -589,15 +591,24 @@ const state = {
   sortKey:'spend', sortDir:-1, search:'', sel:null
 };
 const ENT = {
-  none:{label:'creative', pl:'creatives'}, campaign:{label:'campaign', pl:'campaigns'},
+  none:{label:'creative', pl:'creatives'}, brand:{label:'brand', pl:'brands'}, channel:{label:'channel', pl:'channels'},
+  campaign:{label:'campaign', pl:'campaigns'},
   format:{label:'format', pl:'formats'}, objective:{label:'objective', pl:'objectives'},
   age:{label:'age group', pl:'age groups'}, gender:{label:'gender', pl:'genders'}, platform:{label:'platform', pl:'platforms'}
 };
-const usesFacts = ()=> ['none','campaign','format','objective'].includes(state.segment);
+const usesFacts = ()=> ['none','brand','channel','campaign','format','objective'].includes(state.segment);
 
 // ---------- source rows + grouping ----------
 function filteredFacts(){
-  return FACTS.filter(f=> f.date>=state.from && f.date<=state.to && (state.type==='all'||f.type===state.type));
+  return FACTS.filter(f=>{
+    // period rows (lifetime/cumulative uploads) use range-overlap against the
+    // filter window instead of an exact date match, since they don't have a
+    // true daily date — they represent a span, not a point.
+    const inRange = f.period_end
+      ? (f.date<=state.to && f.period_end>=state.from)
+      : (f.date>=state.from && f.date<=state.to);
+    return inRange && (state.type==='all'||f.type===state.type);
+  });
 }
 function filteredBreakdown(){
   const rows = BREAK[state.segment] || [];
@@ -630,6 +641,20 @@ function aggregate(){
     for(const r of filteredFacts()){
       let a=m[r.type];
       if(!a) a=m[r.type]=newAgg(r.type, typeLabel(r.type), r.type);
+      addRow(a,r);
+    }
+  } else if(state.segment==='brand'){
+    for(const r of filteredFacts()){
+      const key = r.brand || 'Unspecified';
+      let a=m[key];
+      if(!a) a=m[key]=newAgg(key, key, null);
+      addRow(a,r);
+    }
+  } else if(state.segment==='channel'){
+    for(const r of filteredFacts()){
+      const key = r.channel || 'Unspecified';
+      let a=m[key];
+      if(!a) a=m[key]=newAgg(key, key, null);
       addRow(a,r);
     }
   } else if(state.segment==='campaign'){
@@ -877,7 +902,12 @@ function renderTrend(){
     legendHost.innerHTML='';
     return;
   }
-  const ff=filteredFacts();
+  const ff=filteredFacts().filter(f=>!f.period_end); // lifetime/cumulative rows have no real day to plot
+  if(!ff.length){
+    host.innerHTML=`<div class="trendnote">Every row in this window is a lifetime/cumulative total (no per-row date), so there's nothing to chart day-by-day here. They're still counted correctly in the totals, leaderboard and table above.</div>`;
+    legendHost.innerHTML='';
+    return;
+  }
   const dates=[...new Set(ff.map(f=>f.date))].sort();
   const series = state.type==='all' ? ['SHARE','VIDEO'] : [state.type];
   const byDate={}; dates.forEach(d=>byDate[d]={});
@@ -1140,9 +1170,16 @@ $('#themeBtn').addEventListener('click',()=>{
 });
 
 // header dynamic numbers
-(function(){const t=totals(aggFromFacts(FACTS));$('#thSpend').textContent=fmtUSD(t.spend);
+(function(){
+  const t=totals(aggFromFacts(FACTS));$('#thSpend').textContent=fmtUSD(t.spend);
   const nC=new Set(FACTS.map(f=>f.creative_id)).size; $('#thN').textContent=nC;
-  const days=new Set(FACTS.map(f=>f.date)).size;$('#thWindow').textContent=days+' days';})();
+  const days=new Set(FACTS.map(f=>f.date)).size;$('#thWindow').textContent=days+' days';
+  const brands=[...new Set(FACTS.map(f=>f.brand).filter(Boolean))];
+  const channels=[...new Set(FACTS.map(f=>f.channel).filter(Boolean))];
+  $('#thBrandLine').textContent = brands.length>1 ? `${brands.length} brands` : brands.length===1 ? brands[0] : 'This account';
+  if(brands.length) $('#eyebrowTag').textContent = brands.length>1 ? `${brands.length} Brands · Cross-Channel` : `${brands[0]} · Creative Performance`;
+  $('#thSource').textContent = channels.length ? channels.join(' · ') : 'Meta Ads via Windsor.ai';
+})();
 
 refreshMetricUI();
 renderAll();

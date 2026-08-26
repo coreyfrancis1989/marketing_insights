@@ -154,10 +154,12 @@ function buildSystemPrompt() {
   const { facts, creatives, campaigns } = store.loadAll();
   const creativeRollups = store.computeCreativeRollups(facts, creatives);
   const campaignRollups = store.computeCampaignRollups(facts, campaigns);
+  const brandRollups = store.computeBrandRollups(facts);
   const totalSpend = facts.reduce((s, f) => s + (f.spend || 0), 0);
   const totalImpr = facts.reduce((s, f) => s + (f.impressions || 0), 0);
   const totalClicks = facts.reduce((s, f) => s + (f.clicks || 0), 0);
   const dates = facts.map((f) => f.date).filter(Boolean).sort();
+  const periodRows = facts.filter((f) => f.period_start).length;
 
   const dataset = {
     totals: {
@@ -176,17 +178,22 @@ function buildSystemPrompt() {
       hook_rate: "3-second video plays (hook) / impressions * 100",
       hold_rate: "ThruPlays (hold) / hook * 100",
       roas: "purchase_value / spend",
+      note: "Fields prefixed 'reported_', plus vtr/vcr/frequency, are rates the source platform reported directly (not derived from raw counts here) — they're weighted-averaged by impressions across rows, never summed.",
     },
-    creatives: creativeRollups,
+    brands: brandRollups,
     campaigns: campaignRollups,
+    creatives: creativeRollups,
   };
+  if (periodRows > 0) {
+    dataset.note = `${periodRows} row(s) in this dataset are lifetime/cumulative totals for a date range (no daily breakdown), not single-day figures — they're already folded into the totals and rollups above correctly, but don't imply a daily trend for them.`;
+  }
   const dataJson = JSON.stringify(dataset);
 
-  return `You are a marketing analyst embedded in a creative-performance dashboard for paid social ads. The dataset may include data uploaded manually by the user in addition to the original Meta Ads export, so don't assume every row is from Meta.
+  return `You are a marketing analyst embedded in a cross-channel creative-performance dashboard. The dataset spans multiple brands and ad platforms, and may include data uploaded manually by the user in addition to any originally-connected source — don't assume every row is from the same brand or platform.
 
-Answer questions about this dataset precisely and concisely, in plain language a marketer would use — not a data engineer. Always ground answers in the numbers below; never invent figures. If a question can't be answered from this data, say so plainly instead of guessing.
+Answer questions about this dataset precisely and concisely, in plain language a marketer would use — not a data engineer. Always ground answers in the numbers below; never invent figures. If a question can't be answered from this data, say so plainly instead of guessing. When a question could mean multiple brands, ask which one or answer for all of them clearly labeled.
 
-Formatting: short paragraphs or a tight bullet list. Lead with the answer, then the supporting number(s). Cite spend in $ and rates as %. Name creatives/campaigns by their actual name, not their ID, unless the name is missing.
+Formatting: short paragraphs or a tight bullet list. Lead with the answer, then the supporting number(s). Cite spend in $ and rates as %. Name creatives/campaigns/brands by their actual name, not their ID, unless the name is missing.
 
 Dataset (JSON):
 ${dataJson}`;

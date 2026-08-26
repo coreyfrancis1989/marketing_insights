@@ -273,6 +273,7 @@ function renderMapPanel(){
           <div class="full"><label>New field name</label><input type="text" class="newlabel" value="${esc(m.action==='create'?m.field.label:col)}"></div>
           <div><label>Kind</label><select class="newkind">
             <option value="metric" ${m.action==='create'&&m.field.kind==='metric'?'selected':''}>Metric (number, summable)</option>
+            <option value="rate" ${m.action==='create'&&m.field.kind==='rate'?'selected':''}>Rate (%, averaged not summed)</option>
             <option value="dimension" ${m.action==='create'&&m.field.kind==='dimension'?'selected':''}>Dimension (text label)</option>
           </select></div>
           <div><label>Format</label><select class="newunit">
@@ -291,7 +292,7 @@ function renderMapPanel(){
     const cf = row.querySelector('.createform');
     const kindSel = row.querySelector('.newkind');
     const unitRow = row.querySelector('.newunit').closest('div');
-    function syncUnitVisibility(){ unitRow.style.display = kindSel.value==='metric' ? '' : 'none'; }
+    function syncUnitVisibility(){ unitRow.style.display = kindSel.value==='dimension' ? 'none' : ''; }
     syncUnitVisibility();
     kindSel.addEventListener('change', syncUnitVisibility);
     sel.addEventListener('change', ()=>{
@@ -310,7 +311,7 @@ function updateMappingFromRow(row, col){
     mapping[col] = { action:'create', field: {
       key: col, label: row.querySelector('.newlabel').value || col,
       kind: row.querySelector('.newkind').value,
-      type: row.querySelector('.newkind').value==='metric' ? 'number' : 'text',
+      type: row.querySelector('.newkind').value==='dimension' ? 'text' : 'number',
       unit: row.querySelector('.newunit').value,
     }};
     return;
