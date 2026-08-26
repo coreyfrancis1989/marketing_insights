@@ -1,0 +1,16 @@
+{
+  "name": "marketing-insights",
+  "version": "1.0.0",
+  "description": "Comfort Colors creative performance dashboard with a data-aware chat agent.",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.68.0",
+    "express": "^4.19.2"
+  }
+}
