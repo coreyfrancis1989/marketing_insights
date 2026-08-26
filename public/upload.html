@@ -1,0 +1,388 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Upload Data — Comfort Colors Creative Board</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=Instrument+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+:root{
+  --ground:#EFEAE1; --surface:#FBF8F2; --surface-2:#F4EEE4;
+  --ink:#2A2622; --ink-2:#6E6558; --muted:#978D7E; --line:#E4DBCD; --line-2:#D8CDBB;
+  --accent:#3F6B7D; --good:#4F7A52; --warn:#9C6B1E; --crit:#A6412F;
+  --shadow:0 1px 2px rgba(42,38,34,.06),0 8px 24px rgba(42,38,34,.06);
+  --serif:"Bricolage Grotesque",Georgia,serif;
+  --sans:"Instrument Sans",-apple-system,Segoe UI,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,monospace;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --ground:#1B1815; --surface:#252119; --surface-2:#2E2921;
+    --ink:#F1EBE0; --ink-2:#BBB1A0; --muted:#8B8173; --line:#39332A; --line-2:#463F34;
+    --accent:#6FA0B4; --good:#7DA87F; --warn:#C79A4E; --crit:#D07A63;
+    --shadow:0 1px 2px rgba(0,0,0,.3),0 10px 30px rgba(0,0,0,.35);
+  }
+}
+:root[data-theme="dark"]{
+  --ground:#1B1815; --surface:#252119; --surface-2:#2E2921;
+  --ink:#F1EBE0; --ink-2:#BBB1A0; --muted:#8B8173; --line:#39332A; --line-2:#463F34;
+  --accent:#6FA0B4; --good:#7DA87F; --warn:#C79A4E; --crit:#D07A63;
+  --shadow:0 1px 2px rgba(0,0,0,.3),0 10px 30px rgba(0,0,0,.35);
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--ground);color:var(--ink);font-family:var(--sans);font-size:15px;line-height:1.5;-webkit-font-smoothing:antialiased}
+.wrap{max-width:960px;margin:0 auto;padding:clamp(20px,4vw,44px) clamp(16px,4vw,40px) 80px}
+h1,h2{margin:0;font-family:var(--serif);font-weight:700;letter-spacing:-.01em}
+.eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--ink-2)}
+.mono{font-family:var(--mono);font-variant-numeric:tabular-nums}
+a{color:var(--accent)}
+header{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;border-bottom:1px solid var(--line-2);padding-bottom:22px;margin-bottom:26px;flex-wrap:wrap}
+header h1{font-size:clamp(24px,3.6vw,34px);max-width:24ch}
+header p{margin:8px 0 0;color:var(--ink-2);max-width:60ch}
+.backlink{font-family:var(--mono);font-size:12px;color:var(--ink-2);text-decoration:none;border:1px solid var(--line-2);
+  border-radius:20px;padding:7px 14px;white-space:nowrap}
+.backlink:hover{border-color:var(--accent);color:var(--accent)}
+
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:22px 24px;margin-bottom:22px;box-shadow:var(--shadow)}
+.panel h2{font-size:18px;margin-bottom:6px}
+.panel .sub{color:var(--ink-2);font-size:13.5px;margin-bottom:16px;max-width:64ch}
+
+.dropzone{border:2px dashed var(--line-2);border-radius:14px;padding:40px 20px;text-align:center;cursor:pointer;
+  transition:border-color .15s,background .15s}
+.dropzone:hover,.dropzone.drag{border-color:var(--accent);background:var(--surface-2)}
+.dropzone .ic{font-size:30px;margin-bottom:10px}
+.dropzone .t{font-weight:600}
+.dropzone .s{font-family:var(--mono);font-size:12px;color:var(--muted);margin-top:6px}
+input[type=file]{display:none}
+
+.filebar{display:flex;align-items:center;gap:12px;margin-bottom:16px;font-family:var(--mono);font-size:13px}
+.filebar .name{font-weight:600}
+.filebar .n{color:var(--muted)}
+.filebar button{margin-left:auto;background:none;border:1px solid var(--line-2);border-radius:8px;color:var(--ink-2);
+  font-family:var(--mono);font-size:12px;padding:6px 12px;cursor:pointer}
+
+.tablewrap{overflow-x:auto;border:1px solid var(--line);border-radius:10px;margin-bottom:20px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+thead th{font-family:var(--mono);font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);
+  text-align:left;padding:8px 10px;border-bottom:1px solid var(--line-2);background:var(--surface-2);white-space:nowrap}
+tbody td{padding:7px 10px;border-bottom:1px solid var(--line);white-space:nowrap;max-width:220px;overflow:hidden;text-overflow:ellipsis}
+tbody tr:last-child td{border-bottom:0}
+
+.maprow{display:grid;grid-template-columns:1.1fr 1fr 1.4fr;gap:14px;align-items:start;padding:14px 0;border-bottom:1px solid var(--line)}
+.maprow:last-child{border-bottom:0}
+.maprow .col{}
+.maprow .colname{font-weight:600;font-size:14px}
+.maprow .sample{font-family:var(--mono);font-size:11.5px;color:var(--muted);margin-top:3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.badge{display:inline-block;font-family:var(--mono);font-size:10px;letter-spacing:.04em;padding:2px 7px;border-radius:20px;margin-top:5px}
+.badge.exact{background:color-mix(in srgb,var(--good) 16%,transparent);color:var(--good)}
+.badge.fuzzy{background:color-mix(in srgb,var(--warn) 16%,transparent);color:var(--warn)}
+.badge.none{background:color-mix(in srgb,var(--muted) 16%,transparent);color:var(--muted)}
+select,input[type=text]{font-family:var(--mono);font-size:12.5px;background:var(--surface-2);color:var(--ink);
+  border:1px solid var(--line-2);border-radius:8px;padding:7px 9px;width:100%}
+.createform{display:none;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}
+.createform.on{display:grid}
+.createform label{font-family:var(--mono);font-size:9.5px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);display:block;margin-bottom:3px}
+.createform .full{grid-column:1/-1}
+
+.actions{display:flex;gap:12px;align-items:center;margin-top:8px}
+.btn{font-family:var(--mono);font-size:13px;border-radius:9px;padding:10px 18px;cursor:pointer;border:1px solid var(--line-2);background:var(--surface-2);color:var(--ink)}
+.btn.primary{background:var(--accent);color:#fff;border-color:var(--accent)}
+:root[data-theme="dark"] .btn.primary,:root:not([data-theme="light"]) .btn.primary{color:#151310}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.hint{font-family:var(--mono);font-size:11.5px;color:var(--muted);margin-top:10px;line-height:1.6}
+.err{color:var(--crit);font-size:13px;margin-top:10px;display:none}
+.err.on{display:block}
+
+.result{display:none}
+.result.on{display:block}
+.result .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:12px;margin:16px 0}
+.result .stat{background:var(--surface-2);border:1px solid var(--line);border-radius:10px;padding:12px 14px}
+.result .stat .l{font-family:var(--mono);font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+.result .stat .v{font-family:var(--serif);font-weight:700;font-size:22px;margin-top:3px}
+.warnbox{background:color-mix(in srgb,var(--warn) 10%,transparent);border:1px solid color-mix(in srgb,var(--warn) 30%,transparent);
+  border-radius:10px;padding:12px 14px;font-size:13px;color:var(--warn);margin-top:12px}
+
+.historytable td,.historytable th{font-size:12.5px}
+.pill{font-family:var(--mono);font-size:10px;padding:2px 8px;border-radius:20px;background:var(--surface-2);border:1px solid var(--line-2);color:var(--ink-2)}
+
+.spin{display:inline-block;width:14px;height:14px;border-radius:50%;border:2px solid var(--line-2);border-top-color:var(--accent);
+  animation:spin .8s linear infinite;vertical-align:middle;margin-right:8px}
+@keyframes spin{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion:reduce){.spin{animation:none}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <span class="eyebrow">Comfort Colors · Data Upload</span>
+      <h1>Bring in your own data</h1>
+      <p>Upload a CSV export. We'll match its columns to what the dashboard already tracks — or let you create new fields on the spot, which then show up as real metrics everywhere in the dashboard.</p>
+    </div>
+    <a class="backlink" href="/">← Back to dashboard</a>
+  </header>
+
+  <section class="panel" id="uploadPanel">
+    <h2>1. Choose a file</h2>
+    <p class="sub">CSV only, up to 20,000 rows. Each row should represent one creative on one day (optionally broken out by age/gender/platform).</p>
+    <div class="dropzone" id="dropzone">
+      <div class="ic">📄</div>
+      <div class="t">Drop a CSV here, or click to browse</div>
+      <div class="s">.csv</div>
+      <input type="file" id="fileInput" accept=".csv,text/csv">
+    </div>
+    <div class="err" id="parseErr"></div>
+  </section>
+
+  <section class="panel" id="mapPanel" style="display:none">
+    <h2>2. Map your columns</h2>
+    <p class="sub">We suggest a match for each column. Change it, ignore it, or create a brand-new field — new fields become real metrics in the dashboard immediately after you commit.</p>
+    <div class="filebar">
+      <span class="name" id="fbName"></span>
+      <span class="n" id="fbRows"></span>
+      <button id="fbReset">Start over</button>
+    </div>
+    <div class="tablewrap">
+      <table id="previewTable"><thead></thead><tbody></tbody></table>
+    </div>
+    <div id="mapRows"></div>
+    <div class="err" id="commitErr"></div>
+    <div class="actions">
+      <button class="btn primary" id="commitBtn">Commit upload</button>
+      <span class="hint" id="commitHint"></span>
+    </div>
+  </section>
+
+  <section class="panel result" id="resultPanel">
+    <h2 id="resultTitle">Upload complete</h2>
+    <div class="stats" id="resultStats"></div>
+    <div id="resultWarnings"></div>
+    <div class="actions">
+      <a class="btn primary" href="/">View in dashboard</a>
+      <button class="btn" id="uploadAnother">Upload another file</button>
+    </div>
+  </section>
+
+  <section class="panel">
+    <h2>Upload history</h2>
+    <p class="sub">Every file committed to this dataset.</p>
+    <div class="tablewrap">
+      <table class="historytable" id="historyTable">
+        <thead><tr><th>File</th><th>When</th><th>Rows</th><th>Created</th><th>Updated</th><th>New fields</th></tr></thead>
+        <tbody id="historyBody"><tr><td colspan="6" class="mono" style="color:var(--muted)">Loading…</td></tr></tbody>
+      </table>
+    </div>
+  </section>
+</div>
+
+<script>
+"use strict";
+const $ = s => document.querySelector(s);
+const esc = s => (s==null?'':String(s)).replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+let schema = { builtin: [], custom: [] };
+let parsed = null; // {uploadId, filename, rowCount, columns, sampleRows, suggestions}
+let mapping = {};  // header -> {action, canonicalKey?, field?}
+
+function allFields(){ return [...schema.builtin, ...schema.custom]; }
+function fieldByKey(k){ return allFields().find(f=>f.key===k); }
+
+// ---------- file selection ----------
+const dropzone = $('#dropzone'), fileInput = $('#fileInput');
+dropzone.addEventListener('click', ()=>fileInput.click());
+dropzone.addEventListener('dragover', e=>{ e.preventDefault(); dropzone.classList.add('drag'); });
+dropzone.addEventListener('dragleave', ()=>dropzone.classList.remove('drag'));
+dropzone.addEventListener('drop', e=>{
+  e.preventDefault(); dropzone.classList.remove('drag');
+  if(e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0]);
+});
+fileInput.addEventListener('change', ()=>{ if(fileInput.files[0]) handleFile(fileInput.files[0]); });
+
+async function handleFile(file){
+  $('#parseErr').classList.remove('on');
+  const fd = new FormData();
+  fd.append('file', file);
+  dropzone.innerHTML = '<div><span class="spin"></span>Parsing '+esc(file.name)+'…</div>';
+  try{
+    const resp = await fetch('/api/upload/parse', { method:'POST', body: fd });
+    const json = await resp.json();
+    if(!resp.ok){ throw new Error(json.error || ('HTTP '+resp.status)); }
+    parsed = json;
+    schema = json.schema;
+    mapping = {};
+    json.columns.forEach(col=>{
+      const s = json.suggestions[col];
+      mapping[col] = s ? { action:'map', canonicalKey: s.canonicalKey } : { action:'create', field:{ key: col, label: col, kind:'metric', type:'number', unit:'number' } };
+    });
+    renderMapPanel();
+    $('#uploadPanel').style.display = 'none';
+    $('#mapPanel').style.display = '';
+    $('#resultPanel').classList.remove('on');
+  }catch(err){
+    $('#parseErr').textContent = err.message;
+    $('#parseErr').classList.add('on');
+  }
+  resetDropzone();
+}
+function resetDropzone(){
+  dropzone.innerHTML = '<div class="ic">📄</div><div class="t">Drop a CSV here, or click to browse</div><div class="s">.csv</div><input type="file" id="fileInput" accept=".csv,text/csv">';
+  const ni = dropzone.querySelector('input'); ni.addEventListener('change', ()=>{ if(ni.files[0]) handleFile(ni.files[0]); });
+}
+
+// ---------- mapping UI ----------
+function fieldOptionsHtml(selectedValue){
+  // selectedValue is 'ignore', 'create', or 'map:<key>' — the exact <option> value to preselect.
+  const dims = allFields().filter(f=>f.kind==='dimension');
+  const mets = allFields().filter(f=>f.kind==='metric');
+  const opt = f => {
+    const val = 'map:'+f.key;
+    return `<option value="${esc(val)}" ${val===selectedValue?'selected':''}>${esc(f.label)}${f.custom?' (custom)':''}</option>`;
+  };
+  const sel = v => v===selectedValue ? 'selected' : '';
+  return `<option value="ignore" ${sel('ignore')}>— Ignore this column —</option>` +
+    `<optgroup label="Dimensions">${dims.map(opt).join('')}</optgroup>` +
+    `<optgroup label="Metrics">${mets.map(opt).join('')}</optgroup>` +
+    `<option value="create" ${sel('create')}>+ Create new field…</option>`;
+}
+
+function renderMapPanel(){
+  $('#fbName').textContent = parsed.filename;
+  $('#fbRows').textContent = parsed.rowCount.toLocaleString() + ' rows';
+
+  // preview table
+  const thead = $('#previewTable thead'), tbody = $('#previewTable tbody');
+  thead.innerHTML = '<tr>' + parsed.columns.map(c=>`<th>${esc(c)}</th>`).join('') + '</tr>';
+  tbody.innerHTML = parsed.sampleRows.map(r=>'<tr>'+parsed.columns.map(c=>`<td>${esc(r[c])}</td>`).join('')+'</tr>').join('');
+
+  // mapping rows
+  const host = $('#mapRows');
+  host.innerHTML = parsed.columns.map(col=>{
+    const s = parsed.suggestions[col];
+    const m = mapping[col];
+    const badge = s ? `<span class="badge ${s.matchType}">${s.matchType==='exact'?'exact match':s.matchType==='fuzzy'?'suggested · '+s.confidence+'%':'no match'}</span>` : `<span class="badge none">no match</span>`;
+    const sample = parsed.sampleRows[0] ? parsed.sampleRows[0][col] : '';
+    const selVal = m.action==='ignore' ? 'ignore' : m.action==='create' ? 'create' : 'map:'+m.canonicalKey;
+    return `<div class="maprow" data-col="${esc(col)}">
+      <div class="col"><div class="colname">${esc(col)}</div><div class="sample">e.g. "${esc(sample)}"</div></div>
+      <div class="col">${badge}</div>
+      <div class="col">
+        <select class="mapsel">${fieldOptionsHtml(m.action==='map' ? 'map:'+m.canonicalKey : m.action)}</select>
+        <div class="createform ${m.action==='create'?'on':''}">
+          <div class="full"><label>New field name</label><input type="text" class="newlabel" value="${esc(m.action==='create'?m.field.label:col)}"></div>
+          <div><label>Kind</label><select class="newkind">
+            <option value="metric" ${m.action==='create'&&m.field.kind==='metric'?'selected':''}>Metric (number, summable)</option>
+            <option value="dimension" ${m.action==='create'&&m.field.kind==='dimension'?'selected':''}>Dimension (text label)</option>
+          </select></div>
+          <div><label>Format</label><select class="newunit">
+            <option value="number" ${m.action==='create'&&m.field.unit==='number'?'selected':''}>Number</option>
+            <option value="currency" ${m.action==='create'&&m.field.unit==='currency'?'selected':''}>Currency</option>
+            <option value="percent" ${m.action==='create'&&m.field.unit==='percent'?'selected':''}>Percent</option>
+          </select></div>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+
+  host.querySelectorAll('.maprow').forEach(row=>{
+    const col = row.dataset.col;
+    const sel = row.querySelector('.mapsel');
+    const cf = row.querySelector('.createform');
+    const kindSel = row.querySelector('.newkind');
+    const unitRow = row.querySelector('.newunit').closest('div');
+    function syncUnitVisibility(){ unitRow.style.display = kindSel.value==='metric' ? '' : 'none'; }
+    syncUnitVisibility();
+    kindSel.addEventListener('change', syncUnitVisibility);
+    sel.addEventListener('change', ()=>{
+      cf.classList.toggle('on', sel.value==='create');
+      updateMappingFromRow(row, col);
+    });
+    row.querySelectorAll('.newlabel,.newkind,.newunit').forEach(el=>el.addEventListener('input', ()=>updateMappingFromRow(row,col)));
+    updateMappingFromRow(row, col);
+  });
+}
+
+function updateMappingFromRow(row, col){
+  const sel = row.querySelector('.mapsel').value;
+  if(sel === 'ignore'){ mapping[col] = { action:'ignore' }; return; }
+  if(sel === 'create'){
+    mapping[col] = { action:'create', field: {
+      key: col, label: row.querySelector('.newlabel').value || col,
+      kind: row.querySelector('.newkind').value,
+      type: row.querySelector('.newkind').value==='metric' ? 'number' : 'text',
+      unit: row.querySelector('.newunit').value,
+    }};
+    return;
+  }
+  mapping[col] = { action:'map', canonicalKey: sel.replace('map:','') };
+}
+
+$('#fbReset').addEventListener('click', ()=>{
+  parsed = null; mapping = {};
+  $('#mapPanel').style.display = 'none';
+  $('#uploadPanel').style.display = '';
+});
+
+$('#commitBtn').addEventListener('click', async ()=>{
+  if(!parsed) return;
+  $('#commitErr').classList.remove('on');
+  const btn = $('#commitBtn');
+  btn.disabled = true; btn.textContent = 'Committing…';
+  try{
+    const resp = await fetch('/api/upload/commit', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ uploadId: parsed.uploadId, mapping })
+    });
+    const json = await resp.json();
+    if(!resp.ok) throw new Error(json.error || ('HTTP '+resp.status));
+    showResult(json);
+    $('#mapPanel').style.display = 'none';
+    loadHistory();
+  }catch(err){
+    $('#commitErr').textContent = err.message;
+    $('#commitErr').classList.add('on');
+  }
+  btn.disabled = false; btn.textContent = 'Commit upload';
+});
+
+function showResult(r){
+  $('#resultPanel').classList.add('on');
+  $('#resultStats').innerHTML = [
+    ['New rows', r.created], ['Updated rows', r.updated], ['Skipped rows', r.skipped],
+    ['New fields', r.newFieldsCreated.length], ['Total rows now', r.totalFacts],
+  ].map(([l,v])=>`<div class="stat"><div class="l">${esc(l)}</div><div class="v mono">${esc(v)}</div></div>`).join('');
+  $('#resultWarnings').innerHTML = (r.warnings||[]).map(w=>`<div class="warnbox">⚠ ${esc(w)}</div>`).join('');
+}
+$('#uploadAnother').addEventListener('click', ()=>{
+  $('#resultPanel').classList.remove('on');
+  $('#uploadPanel').style.display = '';
+  parsed = null; mapping = {};
+});
+
+// ---------- upload history ----------
+async function loadHistory(){
+  try{
+    const resp = await fetch('/api/uploads');
+    const log = await resp.json();
+    const body = $('#historyBody');
+    if(!Array.isArray(log) || log.length===0){
+      body.innerHTML = '<tr><td colspan="6" class="mono" style="color:var(--muted)">No uploads yet — the dashboard is showing its original seeded dataset.</td></tr>';
+      return;
+    }
+    body.innerHTML = [...log].reverse().map(u=>`<tr>
+      <td>${esc(u.filename||'—')}</td>
+      <td class="mono">${esc(new Date(u.uploadedAt).toLocaleString())}</td>
+      <td class="mono">${esc(u.rowCount)}</td>
+      <td class="mono">${esc(u.created)}</td>
+      <td class="mono">${esc(u.updated)}</td>
+      <td>${(u.newFieldsCreated||[]).map(f=>`<span class="pill">${esc(f)}</span>`).join(' ')||'—'}</td>
+    </tr>`).join('');
+  }catch(err){
+    $('#historyBody').innerHTML = '<tr><td colspan="6" style="color:var(--crit)">Could not load upload history.</td></tr>';
+  }
+}
+loadHistory();
+</script>
+</body>
+</html>
