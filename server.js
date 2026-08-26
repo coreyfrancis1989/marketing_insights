@@ -120,6 +120,17 @@ app.patch("/api/schema/custom/:key", (req, res) => {
 // Moves a custom field's data onto another field key (e.g. consolidating a
 // duplicate custom field into the builtin a later taxonomy update added
 // for the same concept), then removes the now-empty custom field.
+// Removes every fact row for one creative_id (cleanup for a mistaken/test
+// upload) — unconditional, since unlike custom-field deletion there's no
+// "still needed elsewhere" ambiguity for a single creative's own rows.
+app.delete("/api/facts/creative/:creativeId", (req, res) => {
+  try {
+    res.json(store.deleteFactsForCreative(req.params.creativeId));
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 app.post("/api/schema/custom/:key/merge-into", (req, res) => {
   const { targetKey } = req.body || {};
   if (!targetKey) { res.status(400).json({ error: "Request must include `targetKey`." }); return; }
