@@ -106,6 +106,31 @@ app.delete("/api/schema/custom/:key", (req, res) => {
   }
 });
 
+// Reclassify a custom field's kind/unit/label (metadata only — no fact data touched).
+app.patch("/api/schema/custom/:key", (req, res) => {
+  try {
+    const result = store.updateCustomField(req.params.key, req.body || {});
+    res.json(result);
+  } catch (err) {
+    const status = err.code === "NOT_FOUND" ? 404 : 500;
+    res.status(status).json({ error: err.message });
+  }
+});
+
+// Moves a custom field's data onto another field key (e.g. consolidating a
+// duplicate custom field into the builtin a later taxonomy update added
+// for the same concept), then removes the now-empty custom field.
+app.post("/api/schema/custom/:key/merge-into", (req, res) => {
+  const { targetKey } = req.body || {};
+  if (!targetKey) { res.status(400).json({ error: "Request must include `targetKey`." }); return; }
+  try {
+    const result = store.mergeFieldInto(req.params.key, targetKey);
+    res.json(result);
+  } catch (err) {
+    res.status(err.code === "BAD_REQUEST" ? 400 : 500).json({ error: err.message });
+  }
+});
+
 // ---------- upload: parse + suggest mapping (does not persist anything) ----------
 app.post("/api/upload/parse", upload.single("file"), (req, res) => {
   if (!req.file) {
@@ -142,7 +167,7 @@ app.post("/api/upload/parse", upload.single("file"), (req, res) => {
 
 // ---------- upload: commit a confirmed mapping ----------
 app.post("/api/upload/commit", (req, res) => {
-  const { uploadId, mapping } = req.body || {};
+  const { uploadId, mapping, defaultPeriod } = req.body || {};
   if (!uploadId || !mapping) {
     res.status(400).json({ error: "Request must include `uploadId` and `mapping`." });
     return;
@@ -153,7 +178,7 @@ app.post("/api/upload/commit", (req, res) => {
     return;
   }
   try {
-    const result = store.commitUpload({ rows: pending.rows, mapping, filename: pending.filename });
+    const result = store.commitUpload({ rows: pending.rows, mapping, filename: pending.filename, defaultPeriod });
     pendingUploads.delete(uploadId);
     res.json(result);
   } catch (err) {

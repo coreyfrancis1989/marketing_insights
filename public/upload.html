@@ -148,6 +148,16 @@ select,input[type=text]{font-family:var(--mono);font-size:12.5px;background:var(
       <table id="previewTable"><thead></thead><tbody></tbody></table>
     </div>
     <div id="mapRows"></div>
+
+    <div class="panel" id="periodPanel" style="background:var(--surface-2);margin:18px 0;display:none">
+      <h2 style="font-size:15px">No date column found</h2>
+      <p class="sub">This file has no Date or Period column mapped, so there's nothing to anchor its rows to on the dashboard. Give it a date range and every row will be stored as a lifetime total for that period — counted correctly in totals and the leaderboard, just not on the daily trend line. Leave both blank to import nothing (rows without a date are always skipped).</p>
+      <div class="createform on" style="grid-template-columns:1fr 1fr">
+        <div><label>Period start</label><input type="date" id="periodStart"></div>
+        <div><label>Period end</label><input type="date" id="periodEnd"></div>
+      </div>
+    </div>
+
     <div class="err" id="commitErr"></div>
     <div class="actions">
       <button class="btn primary" id="commitBtn">Commit upload</button>
@@ -306,7 +316,7 @@ function renderMapPanel(){
 
 function updateMappingFromRow(row, col){
   const sel = row.querySelector('.mapsel').value;
-  if(sel === 'ignore'){ mapping[col] = { action:'ignore' }; return; }
+  if(sel === 'ignore'){ mapping[col] = { action:'ignore' }; syncPeriodPanelVisibility(); return; }
   if(sel === 'create'){
     mapping[col] = { action:'create', field: {
       key: col, label: row.querySelector('.newlabel').value || col,
@@ -314,9 +324,20 @@ function updateMappingFromRow(row, col){
       type: row.querySelector('.newkind').value==='dimension' ? 'text' : 'number',
       unit: row.querySelector('.newunit').value,
     }};
+    syncPeriodPanelVisibility();
     return;
   }
   mapping[col] = { action:'map', canonicalKey: sel.replace('map:','') };
+  syncPeriodPanelVisibility();
+}
+
+// Shows the default-period control whenever nothing in the current mapping
+// resolves to a real date anchor (Date or Period Start) — i.e. every row
+// would otherwise be silently skipped.
+function syncPeriodPanelVisibility(){
+  const hasDateAnchor = Object.values(mapping).some(m =>
+    m.action==='map' && (m.canonicalKey==='date' || m.canonicalKey==='period_start'));
+  $('#periodPanel').style.display = hasDateAnchor ? 'none' : '';
 }
 
 $('#fbReset').addEventListener('click', ()=>{
@@ -331,9 +352,14 @@ $('#commitBtn').addEventListener('click', async ()=>{
   const btn = $('#commitBtn');
   btn.disabled = true; btn.textContent = 'Committing…';
   try{
+    let defaultPeriod = null;
+    if($('#periodPanel').style.display !== 'none'){
+      const s = $('#periodStart').value, e = $('#periodEnd').value;
+      if(s) defaultPeriod = { start: s, end: e || s };
+    }
     const resp = await fetch('/api/upload/commit', {
       method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ uploadId: parsed.uploadId, mapping })
+      body: JSON.stringify({ uploadId: parsed.uploadId, mapping, defaultPeriod })
     });
     const json = await resp.json();
     if(!resp.ok) throw new Error(json.error || ('HTTP '+resp.status));
