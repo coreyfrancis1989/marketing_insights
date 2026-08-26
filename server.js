@@ -93,6 +93,19 @@ app.get("/api/uploads", (req, res) => {
   }
 });
 
+// Removes an unused custom field (e.g. one created by an upload that ended
+// up importing zero rows). Refuses if any fact row actually has data under
+// that key — see lib/store.js.
+app.delete("/api/schema/custom/:key", (req, res) => {
+  try {
+    const result = store.deleteCustomField(req.params.key);
+    res.json(result);
+  } catch (err) {
+    const status = err.code === "FIELD_IN_USE" ? 409 : err.code === "NOT_FOUND" ? 404 : 500;
+    res.status(status).json({ error: err.message });
+  }
+});
+
 // ---------- upload: parse + suggest mapping (does not persist anything) ----------
 app.post("/api/upload/parse", upload.single("file"), (req, res) => {
   if (!req.file) {

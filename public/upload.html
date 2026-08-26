@@ -349,11 +349,22 @@ $('#commitBtn').addEventListener('click', async ()=>{
 
 function showResult(r){
   $('#resultPanel').classList.add('on');
+  const nothingImported = r.created === 0 && r.updated === 0;
+  $('#resultTitle').textContent = nothingImported ? 'Nothing was imported' : 'Upload complete';
+  $('#resultTitle').style.color = nothingImported ? 'var(--crit)' : '';
   $('#resultStats').innerHTML = [
     ['New rows', r.created], ['Updated rows', r.updated], ['Skipped rows', r.skipped],
     ['New fields', r.newFieldsCreated.length], ['Total rows now', r.totalFacts],
   ].map(([l,v])=>`<div class="stat"><div class="l">${esc(l)}</div><div class="v mono">${esc(v)}</div></div>`).join('');
-  $('#resultWarnings').innerHTML = (r.warnings||[]).map(w=>`<div class="warnbox">⚠ ${esc(w)}</div>`).join('');
+  const warnings = [...(r.warnings||[])];
+  if(nothingImported){
+    warnings.unshift(
+      `Every row was skipped — none had a mapped Date or Period Start, so nothing could be placed on the dashboard. ` +
+      (r.newFieldsCreated.length ? `${r.newFieldsCreated.length} new field(s) were still created from this attempt even though no data landed — go back and map a Date or Period Start/End column, then re-upload. ` : '') +
+      `Check the mapping and try again.`
+    );
+  }
+  $('#resultWarnings').innerHTML = warnings.map(w=>`<div class="warnbox" ${nothingImported?'style="color:var(--crit);border-color:color-mix(in srgb,var(--crit) 30%,transparent);background:color-mix(in srgb,var(--crit) 10%,transparent)"':''}>⚠ ${esc(w)}</div>`).join('');
 }
 $('#uploadAnother').addEventListener('click', ()=>{
   $('#resultPanel').classList.remove('on');
